@@ -1,94 +1,37 @@
-import galleryImeges from "./gallery-items.js";
+import gallery from "./gallery-items.js";
+//REFS
+const galleryList = document.querySelector('.gallery')
+const modal = document.querySelector('.lightbox')
+const imageLightbox = document.querySelector('.lightbox__image')
+const btnClose = document.querySelector('button[data-action="close-lightbox"]');
 
-const refs = {
-  $gallery: document.querySelector(".gallery.js__gallery"),
-  $lightbox: document.querySelector(".lightbox.js__lightbox"),
-  $lightboxImg: document.querySelector(".lightbox__image"),
-  $lightboxCloseBtn: document.querySelector('button[data-action="close__lightbox"]'),
-};
+galleryList.addEventListener('click', handleOpenImage)
+btnClose.addEventListener('click', handleCloseModal)
 
-const { $gallery, $lightbox, $lightboxCloseBtn, $lightboxImg } = refs;
+//RENDER GALLERY
+const htmlGallery = gallery.reduce(
+  (htmlGallery, gall) =>
+    htmlGallery +
+    `<li class="gallery__item"><a class="gallery__link" href="${gall.original}"
+><img class="gallery__image"
+src="${gall.preview}" data-source="${gall.original}" alt="${gall.description}"/>
+</a></li>`,
+  ""
+);
+galleryList.insertAdjacentHTML('afterbegin', htmlGallery)
 
-$gallery.addEventListener('click', handelClickGallery)
-$lightboxCloseBtn.addEventListener('click', handelClickCloseBtn)
+// MODAL OPEN
 
-let currentImgIdx = null
-
-function handelClickGallery(e) {
-    e.preventDefault()
-
-    const { dataset, alt, nodeName} = e.target
-
-    if (nodeName === 'IMG') {
-        const { source, id } = dataset
-        handelOpenModal(source, alt, +id)
-    }
+function handleOpenImage(e) {
+  e.preventDefault()
+  const image = e.target
+  if (image.matches("img")) {
+    modal.classList.add("is-open");
+    imageLightbox.setAttribute("src", image.dataset.source);
+  }
 }
-
-function handelOpenModal(src, alt, id) {
-    $lightbox.classList.add('is-open')
-    $lightboxImg.src = src
-    $lightboxImg.alt = alt
-    currentImgIdx = id
-    window.addEventListener('keydown', handleKeypress)
-}
-
-function handleKeypress({ code }) {
-    code === 'Escape' && handleCloseModal()
-    code === 'ArrowRight' && handleNextImg()
-    code === 'ArrowLeft' && handlePrevImg()
-
-}
-
-function handelClickCloseBtn() {
-    handleCloseModal()
-}
-
+// MODAL CLOSE
 function handleCloseModal() {
-    $lightbox.classList.remove('is-open')
-    $lightboxImg.src = ''
-    $lightboxImg.alt = ''
-    currentImgIdx = null
+  modal.classList.remove('is-open')
+  imageLightbox.setAttribute('src', '')
 }
-
-function handleNextImg() {
-currentImgIdx = galleryImeges.length - 1 === currentImgIdx ? 0 : currentImgIdx + 1
-const { original, description } = galleryImeges[currentImgIdx]
-$lightboxImg.src = original
-$lightboxImg.alt = description
-}
-
-function handlePrevImg() {
-    currentImgIdx = currentImgIdx === 0 ? galleryImeges.length - 1 : currentImgIdx - 1
-    const { original, description } = galleryImeges[currentImgIdx]
-    $lightboxImg.src = original
-    $lightboxImg.alt = description
-}
-
-function createGalleryElementMarkup({ preview, original, description }, i) {
-  return `<li class="gallery__item">
-    <a
-    class="gallery__link"
-    href="${original}"
-    >
-    <img
-    data-id="${i}"
-    class="gallery__image"
-    src="${preview}"
-    data-source="${original}"
-    alt="${description}"
-    />
-    </a>
-    </li>
-    `
-}
-
-function createGalleryMarkup(items) {
-    return items.map(createGalleryElementMarkup).join('')
-}
-
-function renderGallery(markup) {
-$gallery.insertAdjacentHTML('beforeend', markup)
-}
-
-renderGallery(createGalleryElementMarkup(galleryImeges))
